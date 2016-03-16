@@ -67,8 +67,8 @@ describe('Page model', function() {
       describe('findByTag', function() {
         it('gets pages with the example tag', function(done) {
           Page.findByTag('example').then(function (pages) {
-            // console.log(pages);
             expect(pages[0].title).to.equal('some_title');
+            expect(pages.length).to.equal(2);
             done();
           }).then(null, done);
         });
@@ -88,14 +88,14 @@ describe('Page model', function() {
         page1.findSimilar().then(function(pages) {
           pages.forEach(function(page) {
             expect(page.title).to.not.equal('another one');
+            done();
           });
-          done();
         }).then(null,done);
       });
 
       it('gets other pages with any common tags',function(done) {
-        page3.findSimilar().then(function(results) {
-          expect(results.length).to.equal(0);
+        page1.findSimilar().then(function(results) {
+          expect(results.length).to.equal(1);
           done();
         }).then(null,done);
       });
@@ -105,8 +105,8 @@ describe('Page model', function() {
         page1.findSimilar().then(function(results) {
           results.forEach(function (result) {
             expect(result.title).to.not.equal('the third page');
+            done();
           });
-          done();
         }).then(null,done);
       });
     });
@@ -119,9 +119,15 @@ describe('Page model', function() {
       pageNope.content = 'lol';
       pageNope.tags = ['ha', 'ha', 'ha'];
       pageNope.save().then(function(data) {
-        assert.fail('this should fail');
+        // assert.fail('this should fail');
+        console.log("*********");
         done();
-      }).catch(function(error) {
+      })
+      // .then(null, function(error) {
+      //   test stuff here
+      //   done();
+      // })
+      .catch(function(error) {
         expect(error.message).to.equal('Page validation failed');
         done();
       });
@@ -146,26 +152,55 @@ describe('Page model', function() {
         });
     });
 
-    it('errors given an invalid status');
+    it('errors given an invalid status',function(done){
+      pageNope = new Page();
+      pageNope.title = "So good title";
+      pageNope.content = "very good content";
+      pageNope.status = "not good status";
+      pageNope.save().then(function(data){
+        console.log("this shouldn't run");
+        done();
+      }).catch(function(error){
+        expect(error.message).to.equal('Page validation failed');
+        done();
+      })
+    });
   });
 
   describe('Hooks', function() {
     it('it sets urlTitle based on title before validating', function(done) {
-      pageNope = new Page();
-      pageNope.title = 'keys to success';
-      pageNope.tags = ['chef', 'dee'];
-      pageNope.content = 'good morning';
-      var spyTest = chai.spy(pageNope.pre);
-      pageNope.save().pre
+      var pageYes = new Page({title: 'keys to success', tags: ['chef', 'dee'], content: 'good morning'});
+      expect(pageYes.urlTitle).to.equal(undefined);
+      return pageYes.validate().then(function() {
+        expect(pageYes.urlTitle).to.equal('keys_to_success');
+        done();
+      }).then(null,done);
     });
   });
 
 
   describe('GET /', function() {
-    it('gets 200 on index', function(done) {
+    it('gets 200 on index ', function(done) {
         agent.get('/').expect(200, done);
     });
-});
+
+    it('gets 200 on wiki/add', function(done) {
+        agent.get('/wiki/add').expect(200, done);
+    });
+
+    it('gets 404 on Wethebest', function(done) {
+        agent.get('/wiki/WeTheBest').expect(404, done);
+    });
+
+    var body = {
+        name: 'WeTheBest'
+      };
+    console.log(body.name);
+    it('Post /wiki', function(done) {
+      agent.post({title: 'WeTheBest', content: 'testBest', status: 'open'}).expect(201,done);
+    })
+
+  });
 
 
 });
