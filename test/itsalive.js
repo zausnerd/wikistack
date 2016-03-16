@@ -100,7 +100,12 @@ describe('Page model', function() {
       });
 
 
-      it('does not get other pages without any common tags');
+      it('does not get other pages without any common tags',function(done) {
+        page1.findSimilar().then(function(results) {
+          expect(results.title).to.not.equal('the third page');
+          done();
+        }).then(null,done);
+      });
     });
   });
 
