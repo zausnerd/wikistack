@@ -11,23 +11,29 @@ chai.use(spies);
 
 
 describe('Page model', function() {
-  var page;
+  var page, page1, page2;
 
   beforeEach(function(done) {
     page = new Page();
     // page.urlTitle = 'some_title';
     page.title = 'some_title';
     page.content = 'I am using __markdown__.';
-    page.tags = 'example';
+    page.tags = ['example'];
     page.save()
     .then(function() {
       page1 = new Page();
       page1.title = 'another one';
       page1.content = 'you smart, real smart';
-      page1.tags = 'we the best example';
+      page1.tags = ['example', 'function', 'here'];
       page1.save().then(function() {
-        done();
-      });
+        page3 = new Page();
+        page3.title = 'the third page';
+        page3.content = 'third content';
+        page3.tags = ['dont', 'jump', 'its'];
+        page3.save().then(function() {
+          done();
+        })
+      })
     })
     .then(null, done);
   });
@@ -62,7 +68,7 @@ describe('Page model', function() {
       describe('findByTag', function() {
         it('gets pages with the example tag', function(done) {
           Page.findByTag('example').then(function (pages) {
-            console.log(pages);
+            // console.log(pages);
             expect(pages[0].title).to.equal('some_title');
             done();
           }).then(null, done);
@@ -80,14 +86,20 @@ describe('Page model', function() {
   describe('Methods', function() {
     describe('findSimilar', function() {
       it('never gets itself',function(done) {
-        page.findSimilar().then(function(pages) {
-          console.log(pages);
-          expect(pages[0].title).to.not.equal('another one');
+        page1.findSimilar().then(function(pages) {
+          expect(pages.title).to.not.equal('another one');
           done();
         }).then(null,done);
       });
 
-      it('gets other pages with any common tags');
+      it('gets other pages with any common tags',function(done) {
+        page3.findSimilar().then(function(results) {
+          expect(results.length).to.equal(0);
+          done();
+        }).then(null,done);
+      });
+
+
       it('does not get other pages without any common tags');
     });
   });
