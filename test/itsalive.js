@@ -4,10 +4,10 @@ var expect = require('chai').expect;
 var index = require('../models/index');
 var Page = index.Page;
 var User = index.User;
-var chalk = require('chalk');
+var supertest = require('supertest');
+var app = require('../app');
+var agent = supertest.agent(app);
 chai.use(spies);
-
- // console.log(Page);
 
 
 describe('Page model', function() {
@@ -15,7 +15,6 @@ describe('Page model', function() {
 
   beforeEach(function(done) {
     page = new Page();
-    // page.urlTitle = 'some_title';
     page.title = 'some_title';
     page.content = 'I am using __markdown__.';
     page.tags = ['example'];
@@ -87,7 +86,9 @@ describe('Page model', function() {
     describe('findSimilar', function() {
       it('never gets itself',function(done) {
         page1.findSimilar().then(function(pages) {
-          expect(pages.title).to.not.equal('another one');
+          pages.forEach(function(page) {
+            expect(page.title).to.not.equal('another one');
+          });
           done();
         }).then(null,done);
       });
@@ -102,22 +103,70 @@ describe('Page model', function() {
 
       it('does not get other pages without any common tags',function(done) {
         page1.findSimilar().then(function(results) {
-          expect(results.title).to.not.equal('the third page');
+          results.forEach(function (result) {
+            expect(result.title).to.not.equal('the third page');
+          });
           done();
         }).then(null,done);
       });
     });
   });
 
+  //run using native promise + catch, praise v8, thy power be c++
   describe('Validations', function() {
-    it('errors without title');
-    it('errors without content');
+    it('errors without title',function(done) {
+      pageNope = new Page();
+      pageNope.content = 'lol';
+      pageNope.tags = ['ha', 'ha', 'ha'];
+      pageNope.save().then(function(data) {
+        assert.fail('this should fail');
+        done();
+      }).catch(function(error) {
+        expect(error.message).to.equal('Page validation failed');
+        done();
+      });
+    });
+
+    // callbacks options
+    // pageNope.save(function(error) {
+    //   expect(error.message).to.equal('Page validation failed');
+    //   done();
+    // });
+
+
+    it('errors without content',function(done) {
+        pageNope = new Page();
+        pageNope.tags = ['ha', 'ha', 'ha'];
+        pageNope.save().then(function(data) {
+          assert.fail('stay away from they');
+          done();
+        }).catch(function(error) {
+          expect(error.message).to.equal('Page validation failed');
+          done();
+        });
+    });
+
     it('errors given an invalid status');
   });
 
   describe('Hooks', function() {
-    it('it sets urlTitle based on title before validating');
+    it('it sets urlTitle based on title before validating', function(done) {
+      pageNope = new Page();
+      pageNope.title = 'keys to success';
+      pageNope.tags = ['chef', 'dee'];
+      pageNope.content = 'good morning';
+      var spyTest = chai.spy(pageNope.pre);
+      pageNope.save().pre
+    });
   });
+
+
+  describe('GET /', function() {
+    it('gets 200 on index', function(done) {
+        agent.get('/').expect(200, done);
+    });
+});
+
 
 });
 
