@@ -21,12 +21,24 @@ describe('Page model', function() {
     page.tags = 'example';
     page.save()
     .then(function() {
-      done();
+      page1 = new Page();
+      page1.title = 'another one';
+      page1.content = 'you smart, real smart';
+      page1.tags = 'we the best example';
+      page1.save().then(function() {
+        done();
+      });
     })
     .then(null, done);
   });
+
+  afterEach(function(done){
+    Page.collection.drop();
+    done();
+  });
+
+
   describe('Virtuals', function() {
-    //console.log(page);
     describe('route', function() {
       it('returns the url_name prepended by "/wiki/"',function(done) {
         expect(page.route).to.equal('/wiki/some_title');
@@ -50,6 +62,7 @@ describe('Page model', function() {
       describe('findByTag', function() {
         it('gets pages with the example tag', function(done) {
           Page.findByTag('example').then(function (pages) {
+            console.log(pages);
             expect(pages[0].title).to.equal('some_title');
             done();
           }).then(null, done);
@@ -66,7 +79,14 @@ describe('Page model', function() {
 
   describe('Methods', function() {
     describe('findSimilar', function() {
-      it('never gets itself');
+      it('never gets itself',function(done) {
+        page.findSimilar().then(function(pages) {
+          console.log(pages);
+          expect(pages[0].title).to.not.equal('another one');
+          done();
+        }).then(null,done);
+      });
+
       it('gets other pages with any common tags');
       it('does not get other pages without any common tags');
     });
