@@ -59,14 +59,13 @@ router.get('/search', function (req, res, next) {
 
 // /wiki/(dynamic value)
 router.get('/:urlTitle', function (req, res, next) {
-
     Page.findOne({ urlTitle: req.params.urlTitle })
         .populate('author')
         .then(function (page) {
             if (page === null) {
                 res.status(404).send();
             } else {
-                res.render('wikipage', { page: page });   
+                res.render('wikipage', { page: page });
             }
         })
         .then(null, next);
@@ -83,7 +82,7 @@ router.get('/:urlTitle/similar', function (req, res, next) {
             } else {
                 return page.findSimilar().then(function (pages) {
                      res.render('index', { pages: pages });
-                });    
+                });
             }
         })
         .then(null, next);

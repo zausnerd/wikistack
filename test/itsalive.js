@@ -53,7 +53,6 @@ describe('Page model', function() {
     });
     describe('renderedContent', function () {
       it('converts the markdown-formatted content into HTML', function(done) {
-        // console.dir(page);
         expect(page.renderedContent).to.equal('<p>I am using <strong>markdown</strong>.</p>\n');
         done();
       });
@@ -180,7 +179,7 @@ describe('Page model', function() {
 
 
   describe('GET /', function() {
-    it('gets 200 on index ', function(done) {
+    it('gets 200 on index', function(done) {
         agent.get('/').expect(200, done);
     });
 
@@ -192,13 +191,26 @@ describe('Page model', function() {
         agent.get('/wiki/WeTheBest').expect(404, done);
     });
 
-    var body = {
-        name: 'WeTheBest'
-      };
-    console.log(body.name);
     it('Post /wiki', function(done) {
-      agent.post({title: 'WeTheBest', content: 'testBest', status: 'open'}).expect(201,done);
+      agent.post('/wiki/')
+          .send({content: '2', name: 'wethebest', status: 'open', title: 'wethebest', email: 'fake@email.com', tags: 'test again'})
+          .expect(302,function() {
+          agent.get('/wiki/wethebest').expect(200, done);
+          });
+    });
+
+    .expect(302)
+    .end(function(err,res){
+      Page.find({title:adfdafa}).then(function(page){
+        expect
+      }
     })
+    // it('gets 200 on Wethebest', function(done) {
+    //
+    // });
+
+    // it('gets 200 on now created Wethebest', function(done)
+    // });
 
   });
 
